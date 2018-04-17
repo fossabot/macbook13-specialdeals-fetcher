@@ -13,6 +13,7 @@ type Product struct {
 	Name  string   `json:"name"`
 	Specs []string `json:"specs"`
 	Price string   `json:"price"`
+	URL   string   `json:"url"`
 }
 
 func main() {
@@ -48,11 +49,17 @@ func main() {
 		price := s.Find("span[itemprop=price]").Text()
 		price = strings.TrimSpace(price)
 
+		url := specsSelection.Find("h3 > a").AttrOr("href", "#")
+		if url != "#" {
+			url = "https://www.apple.com" + url
+		}
+
 		products = append(products, &Product{
 			ID:    productID,
 			Name:  productName,
 			Specs: specs,
 			Price: price,
+			URL:   url,
 		})
 	})
 
