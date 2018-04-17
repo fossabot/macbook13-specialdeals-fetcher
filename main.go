@@ -26,6 +26,8 @@ func main() {
 		specsSelection := s.Find("td.specs")
 
 		productID := specsSelection.Find("h3 > a").AttrOr("data-relatedlink", "UNKNOWN")
+		productID = productID[4:(4 + 8)]
+		productID = strings.Replace(productID, "_", "/", -1)
 
 		productName := specsSelection.Find("h3").Text()
 		productName = strings.TrimSpace(productName)
