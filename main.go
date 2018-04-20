@@ -3,17 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
 type Product struct {
-	ID    string   `json:"id"`
-	Name  string   `json:"name"`
-	Specs []string `json:"specs"`
-	Price string   `json:"price"`
-	URL   string   `json:"url"`
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	Specs    []string `json:"specs"`
+	Keyboard string   `json:"keyboard"`
+	Price    string   `json:"price"`
+	URL      string   `json:"url"`
 }
 
 func main() {
@@ -21,6 +23,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	reJISKeyboard := regexp.MustCompile(`JIS.*キーボード`)
+	reUSKeyboard := regexp.MustCompile(`US.*キーボード`)
 
 	var products []*Product
 	doc.Find("tr.product").Each(func(i int, s *goquery.Selection) {
@@ -49,17 +54,28 @@ func main() {
 		price := s.Find("span[itemprop=price]").Text()
 		price = strings.TrimSpace(price)
 
+		keyboard := "UNKNOWN"
 		url := specsSelection.Find("h3 > a").AttrOr("href", "#")
 		if url != "#" {
 			url = "https://www.apple.com" + url
+
+			detailDoc, _ := goquery.NewDocument(url)
+			detailFullText := detailDoc.Text()
+			if reJISKeyboard.MatchString(detailFullText) {
+				keyboard = "JIS"
+			}
+			if reUSKeyboard.MatchString(detailFullText) {
+				keyboard = "US"
+			}
 		}
 
 		products = append(products, &Product{
-			ID:    productID,
-			Name:  productName,
-			Specs: specs,
-			Price: price,
-			URL:   url,
+			ID:       productID,
+			Name:     productName,
+			Specs:    specs,
+			Keyboard: keyboard,
+			Price:    price,
+			URL:      url,
 		})
 	})
 
