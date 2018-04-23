@@ -18,14 +18,11 @@ type Product struct {
 	URL      string   `json:"url"`
 }
 
-func main() {
+func fetchProducts() ([]*Product, error) {
 	doc, err := goquery.NewDocument("https://www.apple.com/jp/shop/browse/home/specialdeals/mac/macbook_pro/13")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	reJISKeyboard := regexp.MustCompile(`JIS.*キーボード`)
-	reUSKeyboard := regexp.MustCompile(`US.*キーボード`)
 
 	var products []*Product
 	doc.Find("tr.product").Each(func(i int, s *goquery.Selection) {
@@ -54,30 +51,50 @@ func main() {
 		price := s.Find("span[itemprop=price]").Text()
 		price = strings.TrimSpace(price)
 
-		keyboard := "UNKNOWN"
 		url := specsSelection.Find("h3 > a").AttrOr("href", "#")
 		if url != "#" {
 			url = "https://www.apple.com" + url
-
-			detailDoc, _ := goquery.NewDocument(url)
-			detailFullText := detailDoc.Text()
-			if reJISKeyboard.MatchString(detailFullText) {
-				keyboard = "JIS"
-			}
-			if reUSKeyboard.MatchString(detailFullText) {
-				keyboard = "US"
-			}
 		}
 
 		products = append(products, &Product{
 			ID:       productID,
 			Name:     productName,
 			Specs:    specs,
-			Keyboard: keyboard,
+			Keyboard: "UNKNOWN",
 			Price:    price,
 			URL:      url,
 		})
 	})
+
+	return products, nil
+}
+
+func (p *Product) fetchDetails() {
+	if p.URL != "#" {
+		detailDoc, err := goquery.NewDocument(p.URL)
+		if err != nil {
+			p.Keyboard = "ERROR"
+		}
+
+		detailFullText := detailDoc.Text()
+		if regexp.MustCompile(`JIS.*キーボード`).MatchString(detailFullText) {
+			p.Keyboard = "JIS"
+		}
+		if regexp.MustCompile(`US.*キーボード`).MatchString(detailFullText) {
+			p.Keyboard = "US"
+		}
+	}
+}
+
+func main() {
+	products, err := fetchProducts()
+	if err != nil {
+		panic(err)
+	}
+
+	for i, _ := range products {
+		products[i].fetchDetails()
+	}
 
 	jsonBytes, err := json.Marshal(products)
 	if err != nil {
