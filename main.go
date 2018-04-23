@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -87,14 +90,39 @@ func (p *Product) fetchDetails() {
 }
 
 func main() {
+	threads := flag.Int("threads", 5, "")
+	flag.Parse()
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	var wg sync.WaitGroup
+
 	products, err := fetchProducts()
 	if err != nil {
 		panic(err)
 	}
 
-	for i, _ := range products {
-		products[i].fetchDetails()
+	// make worker threads
+	queue := make(chan *Product, len(products))
+	for i := 0; i < *threads; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for {
+				product, ok := <-queue
+				if !ok {
+					return
+				}
+				product.fetchDetails()
+			}
+		}()
 	}
+
+	for _, product := range products {
+		queue <- product
+	}
+	close(queue)
+	wg.Wait()
 
 	jsonBytes, err := json.Marshal(products)
 	if err != nil {
