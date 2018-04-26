@@ -21,8 +21,8 @@ type Product struct {
 	URL      string   `json:"url"`
 }
 
-func fetchProducts() ([]*Product, error) {
-	doc, err := goquery.NewDocument("https://www.apple.com/jp/shop/browse/home/specialdeals/mac/macbook_pro/13")
+func fetchProducts(locale string) ([]*Product, error) {
+	doc, err := goquery.NewDocument("https://www.apple.com/" + locale + "/shop/browse/home/specialdeals/mac/macbook_pro/13")
 	if err != nil {
 		return nil, err
 	}
@@ -32,8 +32,9 @@ func fetchProducts() ([]*Product, error) {
 		specsSelection := s.Find("td.specs")
 
 		productID := specsSelection.Find("h3 > a").AttrOr("data-relatedlink", "UNKNOWN")
-		productID = productID[4:(4 + 8)]
-		productID = strings.Replace(productID, "_", "/", -1)
+		if productID != "UNKNOWN" {
+			productID = strings.Split(productID, "_")[1]
+		}
 
 		productName := specsSelection.Find("h3").Text()
 		productName = strings.TrimSpace(productName)
@@ -80,10 +81,10 @@ func (p *Product) fetchDetails() {
 		}
 
 		detailFullText := detailDoc.Text()
-		if regexp.MustCompile(`JIS.*キーボード`).MatchString(detailFullText) {
+		if regexp.MustCompile(`(?i)JIS.*(キーボード|Key)`).MatchString(detailFullText) {
 			p.Keyboard = "JIS"
 		}
-		if regexp.MustCompile(`US.*キーボード`).MatchString(detailFullText) {
+		if regexp.MustCompile(`(?i)(US|U\.S\.).*(キーボード|Key)`).MatchString(detailFullText) {
 			p.Keyboard = "US"
 		}
 	}
@@ -91,12 +92,13 @@ func (p *Product) fetchDetails() {
 
 func main() {
 	threads := flag.Int("threads", 5, "")
+	locale := flag.String("locale", "jp", "")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	var wg sync.WaitGroup
 
-	products, err := fetchProducts()
+	products, err := fetchProducts(*locale)
 	if err != nil {
 		panic(err)
 	}
