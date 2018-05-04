@@ -14,17 +14,23 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = [
     "html",
     "html/atom"
   ]
-  revision = "8d16fa6dc9a85c1cd3ed24ad08ff21cf94f10888"
+  revision = "640f4622ab692b87c2f3a94265e6f579fe38263d"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7745119b46373b54f1306929e4568adc686e659ef6339cf4be6eef085fc7e8ad"
+  inputs-digest = "b465749d26cf7c5074f66a619a0be65f1471be8bb6d48f12a24843ecf5c84806"
   solver-name = "gps-cdcl"
   solver-version = 1

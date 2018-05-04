@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
 )
 
 type Product struct {
@@ -36,6 +37,10 @@ func (p *Product) LoadFromURL(url string) error {
 	}
 
 	parser := NewProductParser(doc)
+
+	if !parser.IsPurchasable() {
+		return errors.New(parser.GetProductID() + " is not purchasable")
+	}
 
 	p.ID = parser.GetProductID()
 	p.Name = parser.GetProductName()
@@ -101,6 +106,15 @@ func (pp *ProductParser) GetKeyboard() string {
 
 func (pp *ProductParser) GetPrice() string {
 	return strings.TrimSpace(pp.Document.Find(".current_price").Text())
+}
+
+func (pp *ProductParser) IsPurchasable() bool {
+	disabled := pp.Document.Find("#product-detail-form button[data-autom=add-to-cart]").HasClass("disabled")
+	if disabled {
+		return false
+	}
+
+	return true
 }
 
 func NewProduct() *Product {
