@@ -1,4 +1,6 @@
 # macbook13-specialdeals-fetcher
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyhinoz%2Fmacbook13-specialdeals-fetcher.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyhinoz%2Fmacbook13-specialdeals-fetcher?ref=badge_shield)
+
 
 Fetch special deals information of "macbook pro 13 inch" in json format.
 
@@ -24,3 +26,7 @@ Install via `go get`:
     }
 
 If the locale option is not specified, using a default locale(jp).
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyhinoz%2Fmacbook13-specialdeals-fetcher.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyhinoz%2Fmacbook13-specialdeals-fetcher?ref=badge_large)
